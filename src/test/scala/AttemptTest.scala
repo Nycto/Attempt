@@ -28,4 +28,28 @@ object AttemptTest extends Specification {
 
     }
 
+    "Implicit conversion for an Attempt" should {
+
+        "Convert a Failure to a Left" in {
+            val result: Either[String, String] = Failure[String,String]("Fail")
+            result must_== Left("Fail")
+        }
+
+        "Convert a Success to a Right" in {
+            val result: Either[String, String] = Success[String,String]("Pass")
+            result must_== Right("Pass")
+        }
+
+        "Convert a Failure to a None" in {
+            val result: Option[String] = Failure[String,String]("Fail")
+            result must_== None
+        }
+
+        "Convert a Success to a Right" in {
+            val result: Option[String] = Success[String,String]("Pass")
+            result must_== Some("Pass")
+        }
+
+    }
+
 }

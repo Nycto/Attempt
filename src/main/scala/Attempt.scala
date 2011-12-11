@@ -19,6 +19,24 @@ object Attempt {
         case Some(value) => Success(value)
     }
 
+    /**
+     * Converts an Attempt to an Either
+     */
+    implicit def attemptToEither[S, F] ( attempt: Attempt[S, F] ): Either[F, S]
+        = attempt match {
+            case Success(value) => Right(value)
+            case Failure(error) => Left(error)
+        }
+
+    /**
+     * Converts an Attempt to an Option
+     */
+    implicit def attemptToOption[S, F] ( attempt: Attempt[S, F] ): Option[S]
+        = attempt match {
+            case Success(value) => Some(value)
+            case Failure(_) => None
+        }
+
 }
 
 /**
