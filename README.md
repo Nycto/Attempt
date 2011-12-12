@@ -9,9 +9,7 @@ short circuited.
 
 It's easier to see an example:
 
-    def process (
-        requestData: Map[String, String]
-    ): Either[String, Product] = {
+    def process ( data: Map[String, Int] ): Either[String, Product] = {
 
         import com.roundeights.attempt.Attempt
 
@@ -19,13 +17,14 @@ It's easier to see an example:
 
             userID <- Attempt(
                 // Calling 'get' on a map returns an Option
-                requestData.get("userID"),
-                "RequestData is missing the 'userID' key"
+                data.get("userID"),
+                "Data is missing the 'userID' key"
             )
 
             // Guards are supported, but they will use the error message
             // of the attempt they are attached to. In this case, the error
-            // message is probably not very appropriate
+            // message is probably not very appropriate. Keep parsing for
+            // another way to handle this situation
             if ( userID > 0 )
 
             user <- Attempt(
@@ -36,8 +35,15 @@ It's easier to see an example:
 
             productID <- Attempt(
                 // Calling 'get' on a map returns an Option
-                requestData.get("productID"),
-                "RequestData is missing the 'productID' key"
+                data.get("productID"),
+                "Data is missing the 'productID' key"
+            )
+
+            // Another way to handle boolean conditions, but this time it
+            // supports custom messaging:
+            _ <- Attempt(
+                productID > 0,
+                "productID must be a positive integer"
             )
 
             product <- Attempt(

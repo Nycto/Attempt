@@ -6,7 +6,7 @@ object AttemptTest extends Specification {
 
     import com.roundeights.attempt._
 
-    "Attempts within a list comprehension" should {
+    "Attempts using an Option" should {
 
         "yield the final value if all the errors are successful" in {
             val result = for {
@@ -25,6 +25,18 @@ object AttemptTest extends Specification {
 
             result must_== Failure("Error 1")
         }
+
+        "not evaluate the failure condition unless it is encountered" in {
+            val result = for {
+                a <- Attempt( Some(1234), throw new RuntimeException )
+            } yield a
+
+            result must_== Success(1234, "Err")
+        }
+
+    }
+
+    "Attempts with if guards" should {
 
         "continue when an if check succeeds" in {
             val result = for {
@@ -57,7 +69,28 @@ object AttemptTest extends Specification {
 
     }
 
-    "Implicit conversion for an Attempt" should {
+    "Attempts constructed with booleans" should {
+
+        "be Successful for True" in {
+            val result = for {
+                a <- Attempt( true, "Err 1" )
+            } yield a
+
+            result must_== Success(true, "Err")
+        }
+
+        "fail when evaluated to false" in {
+            val result = for {
+                _ <- Attempt( true, "Err 1" )
+                a <- Attempt( false, "Error 2" )
+            } yield a
+
+            result must_== Failure("Error 2")
+        }
+
+    }
+
+    "Implicit conversions for an Attempt" should {
 
         "Convert a Failure to a Left" in {
             val result: Either[String, String] = Failure[String,String]("Fail")

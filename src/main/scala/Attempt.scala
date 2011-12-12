@@ -14,10 +14,20 @@ object Attempt {
     /**
      * Create an attempt
      */
-    def apply[S, F] ( condition: Option[S], onError: => F ) = condition match {
-        case None => Failure( onError )
-        case Some(value) => new Success(value, () => onError)
-    }
+    def apply[S, F] ( condition: Option[S], onError: => F ): Attempt[S, F]
+        = condition match {
+            case None => Failure( onError )
+            case Some(value) => new Success(value, () => onError)
+        }
+
+    /**
+     * Create an attempt from a boolean expression
+     */
+    def apply[F] ( condition: Boolean, onError: => F ): Attempt[Boolean, F]
+        = condition match {
+            case false  => Failure( onError )
+            case true => new Success( true, () => onError )
+        }
 
     /**
      * Converts an Attempt to an Either
