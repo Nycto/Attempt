@@ -23,6 +23,11 @@ It's easier to see an example:
                 "RequestData is missing the 'userID' key"
             )
 
+            // Guards are supported, but they will use the error message
+            // of the attempt they are attached to. In this case, the error
+            // message is probably not very appropriate
+            if ( userID > 0 )
+
             user <- Attempt(
                 // findByUserID should return an Option
                 findUserByID( userID ),

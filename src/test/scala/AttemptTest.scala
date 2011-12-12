@@ -14,7 +14,7 @@ object AttemptTest extends Specification {
                 b <- Attempt( Some("xyz" + a), "Error 2" )
             } yield b
 
-            result must_== Success("xyzabc")
+            result must_== Success("xyzabc", "Error 1")
         }
 
         "yield an intermediary error if anything is None" in {
@@ -24,6 +24,35 @@ object AttemptTest extends Specification {
             } yield b
 
             result must_== Failure("Error 1")
+        }
+
+        "continue when an if check succeeds" in {
+            val result = for {
+                a <- Attempt( Some(1234), "Error 1" )
+                if ( a == 1234 )
+                b <- Attempt( Some(a + 6), "Error 2" )
+            } yield b
+
+            result must_== Success(1240, "Error 1")
+        }
+
+        "short circuit when an if check fails" in {
+            val result = for {
+                a <- Attempt( Some(1234), "Error 1" )
+                if ( a != 1234 )
+                b <- Attempt( Some(a + 6), "Error 2" )
+            } yield b
+
+            result must_== Failure("Error 1")
+        }
+
+        "not evaluate the failure condition unless it is encountered" in {
+            val result = for {
+                a <- Attempt( Some(1234), throw new RuntimeException )
+                if ( a == 1234 )
+            } yield a
+
+            result must_== Success(1234, "Err")
         }
 
     }
@@ -36,7 +65,8 @@ object AttemptTest extends Specification {
         }
 
         "Convert a Success to a Right" in {
-            val result: Either[String, String] = Success[String,String]("Pass")
+            val result: Either[String, String]
+                = Success[String,String]("Pass", "Fail")
             result must_== Right("Pass")
         }
 
@@ -46,7 +76,8 @@ object AttemptTest extends Specification {
         }
 
         "Convert a Success to a Right" in {
-            val result: Option[String] = Success[String,String]("Pass")
+            val result: Option[String]
+                = Success[String,String]("Pass", "Fail")
             result must_== Some("Pass")
         }
 

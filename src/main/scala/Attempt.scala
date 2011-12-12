@@ -16,7 +16,7 @@ object Attempt {
      */
     def apply[S, F] ( condition: Option[S], onError: => F ) = condition match {
         case None => Failure( onError )
-        case Some(value) => Success(value)
+        case Some(value) => new Success(value, () => onError)
     }
 
     /**
@@ -66,16 +66,41 @@ abstract sealed class Attempt [+S, +F] () {
      */
     def foreach ( callback: S => Unit ): Unit
 
+    /**
+     * Filters this attempt according to a predicate
+     */
+    def withFilter ( predicate: S => Boolean ): Attempt[S, F]
+
+}
+
+/**
+ * Companion for the Success object
+ */
+object Success {
+
+    /**
+     * Create a new Success object
+     */
+    def apply[S, F]( success: S, failure: => F ): Success[S,F]
+        = new Success[S, F]( success, () => failure )
+
+    /**
+     * Extracts the value from a success object
+     */
+    def unapply[S, F]( success: Success[S, F] ): Some[S] = Some(success.value)
+
 }
 
 /**
  * A success link in the Attempt. Think of this as a 'Right'
  */
-case class Success[S, F] ( val value: S ) extends Attempt[S, F] {
+class Success[S, F] (
+    val value: S, val failure: () => F
+) extends Attempt[S, F] with Equals {
 
     /** {@inheritDoc} */
     override def map[N] ( callback: S => N ): Attempt[N, F]
-        = Success[N, F]( callback(value) )
+        = new Success[N, F]( callback(value), failure )
 
     /** {@inheritDoc} */
     override def flatMap[NS, NF >: F] (
@@ -86,6 +111,26 @@ case class Success[S, F] ( val value: S ) extends Attempt[S, F] {
     /** {@inheritDoc} */
     override def foreach ( callback: S => Unit ): Unit
         = callback( value )
+
+    /** {@inheritDoc} */
+    def withFilter ( predicate: S => Boolean ): Attempt[S, F]
+        = if ( predicate(value) ) this else Failure[S, F]( failure() )
+
+    /** {@inheritDoc} */
+    override def toString (): String = "Success(%s)".format( value.toString )
+
+    /** {@inheritDoc} */
+    override def hashCode (): Int = value.hashCode
+
+    /** {@inheritDoc} */
+    override def canEqual(other: Any): Boolean
+        = other.isInstanceOf[Success[_,_]]
+
+    /** {@inheritDoc} */
+    override def equals(other: Any) = other match {
+        case vs: Success[_, _] => (vs.canEqual(this)) && (value == vs.value)
+        case _ => false
+    }
 
 }
 
@@ -106,6 +151,9 @@ case class Failure[S, F] ( val failure: F ) extends Attempt[S, F] {
 
     /** {@inheritDoc} */
     override def foreach ( callback: S => Unit ): Unit = {}
+
+    /** {@inheritDoc} */
+    def withFilter ( predicate: S => Boolean ): Attempt[S, F] = this
 
 }
 
