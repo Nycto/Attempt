@@ -9,34 +9,41 @@ short circuited.
 
 It's easier to see an example:
 
-    def process ( data: Map[String, Int] ): Either[String, Product] = {
+    def process ( data: Map[String, String] ): Either[String, Product] = {
 
         import com.roundeights.attempt.Attempt
 
         val response = for {
 
-            userID <- Attempt(
+            userIdString <- Attempt(
                 // Calling 'get' on a map returns an Option
-                data.get("userID"),
-                "Data is missing the 'userID' key"
+                data.get("userId"),
+                "Data is missing the 'userId' key"
             )
 
-            // Guards are supported, but they will use the error message
-            // of the attempt they are attached to. In this case, the error
-            // message is probably not very appropriate. Keep parsing for
-            // another way to handle this situation
-            if ( userID > 0 )
+            // Attempt.except will absorb exceptions and treat them as
+            // failures
+            userId <- Attempt.except( userIdString.toInt, "Invalid userId" )
+
+            // Guards are supported. They will use the error message
+            // of the attempt they are attached to.
+            if ( userId > 0 )
 
             user <- Attempt(
-                // findByUserID should return an Option
-                findUserByID( userID ),
+                // findByuserId should return an Option
+                findUserByID( userId ),
                 "User could not be found"
             )
 
-            productID <- Attempt(
+            productIdString <- Attempt(
                 // Calling 'get' on a map returns an Option
                 data.get("productID"),
                 "Data is missing the 'productID' key"
+            )
+
+            productID <- Attempt.except(
+                productIdString.toInt,
+                "Invalid productId"
             )
 
             // Another way to handle boolean conditions, but this time it

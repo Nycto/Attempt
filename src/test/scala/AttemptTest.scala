@@ -90,6 +90,29 @@ object AttemptTest extends Specification {
 
     }
 
+    "Using Attempt.except" should {
+
+        "absorb exceptions" in {
+            val result = for {
+                a <- Attempt.except(
+                    throw new RuntimeException,
+                    "Error"
+                )
+            } yield a
+
+            result must_== Failure("Error")
+        }
+
+        "yield the conditional value if there is no exception" in {
+            val result = for {
+                a <- Attempt.except( 123, "Error" )
+            } yield a
+
+            result must_== Success(123, "Error")
+        }
+
+    }
+
     "Implicit conversions for an Attempt" should {
 
         "Convert a Failure to a Left" in {

@@ -12,7 +12,7 @@ package com.roundeights.attempt
 object Attempt {
 
     /**
-     * Create an attempt
+     * Create an attempt from an Option
      */
     def apply[S, F] ( condition: Option[S], onError: => F ): Attempt[S, F]
         = condition match {
@@ -27,6 +27,18 @@ object Attempt {
         = condition match {
             case false  => Failure( onError )
             case true => new Success( true, () => onError )
+        }
+
+    /**
+     * Wraps an attempt in a try/catch
+     */
+    def except[E <: Exception, S, F] (
+        condition: => S, onError: => F
+    ): Attempt[S, F]
+        = try {
+            new Success( condition, () => onError )
+        } catch {
+            case _: E => Failure( onError )
         }
 
     /**
