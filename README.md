@@ -9,6 +9,8 @@ short circuited.
 
 It's easier to see an example:
 
+```scala
+
     def process ( data: Map[String, String] ): Either[String, Product] = {
 
         import com.roundeights.attempt.Attempt
@@ -21,47 +23,45 @@ It's easier to see an example:
                 "Data is missing the 'userId' key"
             )
 
-            // Attempt.except will absorb exceptions and treat them as
-            // failures
+            // Attempt.except will absorb exceptions and treat them as failures
             userId <- Attempt.except( userIdString.toInt, "Invalid userId" )
 
             // Guards are supported. They will use the error message
-            // of the attempt they are attached to.
+            // of the Attempt that immediately precedes them.
             if ( userId > 0 )
 
-            user <- Attempt(
-                // findByuserId should return an Option
-                findUserByID( userId ),
-                "User could not be found"
-            )
+            // findByUserId should return an Option
+            user <- Attempt( findUserByID( userId ), "User could not be found" )
 
             productIdString <- Attempt(
                 // Calling 'get' on a map returns an Option
-                data.get("productID"),
-                "Data is missing the 'productID' key"
+                data.get("productId"),
+                "Data is missing the 'productId' key"
             )
 
-            productID <- Attempt.except(
+            productId <- Attempt.except(
                 productIdString.toInt,
                 "Invalid productId"
             )
 
             // Another way to handle boolean conditions, but this time it
-            // supports custom messaging:
+            // supports custom messaging
             _ <- Attempt(
-                productID > 0,
-                "productID must be a positive integer"
+                productId > 0,
+                "productId must be a positive integer"
             )
 
             product <- Attempt(
                 // getPurchase should return an Option
-                user.getPurchase("productID"),
+                user.getPurchase( productId ),
                 "User has not purchased that product"
             )
 
         } yield product
 
     }
+
+```
 
 License
 -------
