@@ -69,7 +69,7 @@ object Attempt {
  * which can be found here:
  * http://www.scala-lang.org/docu/files/ScalaByExample.pdf
  */
-abstract sealed class Attempt [+S, +F] () {
+abstract sealed class Attempt [+S, +F] {
 
     /**
      * Applies a callback to this Attempt if it was successful. The result
@@ -86,7 +86,7 @@ abstract sealed class Attempt [+S, +F] () {
     /**
      * Applies a callback to this Attempt if it was successful
      */
-    def foreach ( callback: S => Unit ): Unit
+    def foreach[U] ( callback: S => U ): Unit
 
     /**
      * Filters this attempt according to a predicate
@@ -131,11 +131,11 @@ class Success[S, F] (
         = callback( value )
 
     /** {@inheritDoc} */
-    override def foreach ( callback: S => Unit ): Unit
+    override def foreach[U] ( callback: S => U ): Unit
         = callback( value )
 
     /** {@inheritDoc} */
-    def withFilter ( predicate: S => Boolean ): Attempt[S, F]
+    override def withFilter ( predicate: S => Boolean ): Attempt[S, F]
         = if ( predicate(value) ) this else Failure[S, F]( failure() )
 
     /** {@inheritDoc} */
@@ -172,10 +172,10 @@ case class Failure[S, F] ( val failure: F ) extends Attempt[S, F] {
         = Failure[NS, F] ( failure )
 
     /** {@inheritDoc} */
-    override def foreach ( callback: S => Unit ): Unit = {}
+    override def foreach[U] ( callback: S => U ): Unit = {}
 
     /** {@inheritDoc} */
-    def withFilter ( predicate: S => Boolean ): Attempt[S, F] = this
+    override def withFilter ( predicate: S => Boolean ): Attempt[S, F] = this
 
 }
 
