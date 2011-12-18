@@ -6,6 +6,7 @@
 
 package com.roundeights.attempt
 
+
 /**
  * Compaion for generating an Attempt
  */
@@ -103,6 +104,14 @@ abstract sealed class Attempt [+S, +F] {
      * Filters this attempt according to a predicate
      */
     def withFilter ( predicate: S => Boolean ): Attempt[S, F]
+
+    /**
+     * Returns either the failed or successful value from this Attempt
+     */
+     def extract[U, S1 >: S <: U, F1 >: F <: U] = this match {
+        case Success(value) => value
+        case Failure(value) => value
+    }
 
 }
 
