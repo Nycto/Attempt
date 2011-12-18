@@ -90,6 +90,29 @@ object AttemptTest extends Specification {
 
     }
 
+    "Attempts constructed to be always successful" should {
+
+        "be Successful for True" in {
+            val result = for {
+                a <- Attempt( "Success!" )
+            } yield a
+
+            result must beLike {
+                case Success("Success!") => ok
+            }
+        }
+
+        "Throw when guarded" in {
+            {
+                for {
+                    a <- Attempt( "Success!" )
+                    if ( false )
+                } yield a
+            } must throwAn[Exception]
+        }
+
+    }
+
     "Using Attempt.except" should {
 
         "absorb exceptions" in {

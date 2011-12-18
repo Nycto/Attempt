@@ -12,6 +12,11 @@ package com.roundeights.attempt
 object Attempt {
 
     /**
+     * Thrown when attempting to fail a value that can not be failed
+     */
+    case class Unfailable() extends Exception
+
+    /**
      * Create an attempt from an Option
      */
     def apply[S, F] ( condition: Option[S], onError: => F ): Attempt[S, F]
@@ -28,6 +33,12 @@ object Attempt {
             case false  => Failure( onError )
             case true => new Success( true, () => onError )
         }
+
+    /**
+     * Creates an always successful attempt
+     */
+    def apply[S] ( value: S ): Attempt[S, Nothing]
+        = new Success( value, () => throw Unfailable() )
 
     /**
      * Wraps an attempt in a try/catch
