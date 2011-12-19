@@ -6,7 +6,6 @@
 
 package com.roundeights.attempt
 
-
 /**
  * Compaion for generating an Attempt
  */
@@ -44,14 +43,15 @@ object Attempt {
     /**
      * Wraps an attempt in a try/catch
      */
-    def except[E <: Exception, S, F] (
+    def except[S, F] (
         condition: => S, onError: => F
-    ): Attempt[S, F]
-        = try {
+    ): Attempt[S, F] = {
+        try {
             new Success( condition, () => onError )
         } catch {
-            case _: E => Failure( onError )
+            case _ => Failure( onError )
         }
+    }
 
     /**
      * Converts an Attempt to an Either
