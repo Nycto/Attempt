@@ -165,11 +165,11 @@ object AttemptTest extends Specification {
     "The extract method" should {
 
         "return the value from a success" in {
-            Success[Int, String]( 123, "ABC" ).extract must_== 123
+            Success[Int, String]( 123, "ABC" ).extract[Int] must_== 123
         }
 
         "return the error from a failure" in {
-            Failure[Int, String]( "ABC" ).extract must_== "ABC"
+            Failure[Int, String]( "ABC" ).extract[String] must_== "ABC"
         }
 
     }

@@ -108,9 +108,9 @@ abstract sealed class Attempt [+S, +F] {
     /**
      * Returns either the failed or successful value from this Attempt
      */
-     def extract[U, S1 >: S <: U, F1 >: F <: U] = this match {
-        case Success(value) => value
-        case Failure(value) => value
+    def extract[J] = this match {
+        case Success(value) => value.asInstanceOf[J]
+        case Failure(value) => value.asInstanceOf[J]
     }
 
 }
