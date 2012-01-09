@@ -129,7 +129,10 @@ object Success {
     /**
      * Extracts the value from a success object
      */
-    def unapply[S, F]( success: Success[S, F] ): Some[S] = Some(success.value)
+    def unapply[S]( attempt: Attempt[S, _] ): Option[S] = attempt match {
+        case success: Success[_, _] => Some( success.value )
+        case _ => None
+    }
 
 }
 
