@@ -57,19 +57,13 @@ object Attempt {
      * Converts an Attempt to an Either
      */
     implicit def attemptToEither[S, F] ( attempt: Attempt[S, F] ): Either[F, S]
-        = attempt match {
-            case Success(value) => Right(value)
-            case Failure(error) => Left(error)
-        }
+        = attempt.toEither
 
     /**
      * Converts an Attempt to an Option
      */
     implicit def attemptToOption[S, F] ( attempt: Attempt[S, F] ): Option[S]
-        = attempt match {
-            case Success(value) => Some(value)
-            case Failure(_) => None
-        }
+        = attempt.toOption
 
 }
 
@@ -112,6 +106,16 @@ abstract sealed class Attempt [+S, +F] {
         case Success(value) => value.asInstanceOf[J]
         case Failure(value) => value.asInstanceOf[J]
     }
+
+    /**
+     * Converts this attempt to an Either
+     */
+    def toEither: Either[F,S]
+
+    /**
+     * Converts this attempt to an Either
+     */
+    def toOption: Option[S]
 
 }
 
@@ -177,6 +181,12 @@ class Success[S, F] (
         case _ => false
     }
 
+    /** {@inheritDoc} */
+    override def toEither: Either[F,S] = Right(value)
+
+    /** {@inheritDoc} */
+    override def toOption: Option[S] = Some(value)
+
 }
 
 /**
@@ -199,6 +209,12 @@ case class Failure[S, F] ( val failure: F ) extends Attempt[S, F] {
 
     /** {@inheritDoc} */
     override def withFilter ( predicate: S => Boolean ): Attempt[S, F] = this
+
+    /** {@inheritDoc} */
+    override def toEither: Either[F,S] = Left(failure)
+
+    /** {@inheritDoc} */
+    override def toOption: Option[S] = None
 
 }
 
