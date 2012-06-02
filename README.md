@@ -1,6 +1,8 @@
 Attempt
 =======
 
+[![Build Status](https://secure.travis-ci.org/Nycto/Attempt.png?branch=master)](http://travis-ci.org/Nycto/Attempt)
+
 Attempt is a micro-library for Scala that makes it possible to use an
 `Either`-like structure in sequence comprehensions. The idea is to make the
 logic for accumulating data easier to read, while providing custom error
