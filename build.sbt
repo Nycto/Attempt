@@ -1,18 +1,16 @@
 name := "Attempt"
 
-scalaVersion := "2.9.1"
+scalaVersion := "2.9.2"
 
 // append -deprecation to the options passed to the Scala compiler
 scalacOptions += "-deprecation"
 
 // Repositories in which to find dependencies
 resolvers ++= Seq(
-    "Specs Repository" at "http://scala-tools.org/repo-releases"
+    "Specs Repository" at "http://oss.sonatype.org/content/repositories/releases"
 )
 
 // Application dependencies
 libraryDependencies ++= Seq(
-    "junit" % "junit" % "4.9" % "test",
-    "org.specs2" %% "specs2" % "1.6.1" % "test",
-    "org.specs2" %% "specs2-scalaz-core" % "6.0.1" % "test"
+    "org.specs2" %% "specs2" % "1.12.1" % "test"
 )
