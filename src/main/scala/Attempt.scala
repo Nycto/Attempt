@@ -6,6 +6,8 @@
 
 package com.roundeights.attempt
 
+import scala.language.implicitConversions
+
 /**
  * Compaion for generating an Attempt
  */
@@ -49,7 +51,7 @@ object Attempt {
         try {
             new Success( condition, () => onError )
         } catch {
-            case _ => Failure( onError )
+            case _: Throwable => Failure( onError )
         }
     }
 
