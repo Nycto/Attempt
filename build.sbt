@@ -1,6 +1,6 @@
 name := "Attempt"
 
-scalaVersion := "2.10.0-RC5"
+scalaVersion := "2.10.0"
 
 // append -deprecation to the options passed to the Scala compiler
 scalacOptions ++= Seq("-deprecation", "-feature")
@@ -12,5 +12,5 @@ resolvers ++= Seq(
 
 // Application dependencies
 libraryDependencies ++= Seq(
-    "org.specs2" %% "specs2" % "1.12.3" % "test"
+    "org.specs2" %% "specs2" % "1.13" % "test"
 )
