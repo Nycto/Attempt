@@ -15,6 +15,22 @@ object OrDoTest extends Specification with Mockito {
         = Await.ready( reader, Duration(5, "second") )
 
 
+    "An OrDo given a Boolean" should {
+
+        "Not run the code when the value is true" in {
+            val onFailure = mock[Runnable]
+            ( true :: OrDo( onFailure.run ) ) must_== Some(true)
+            there was no(onFailure).run()
+        }
+
+        "Run the code when the value is false" in {
+            val onFailure = mock[Runnable]
+            ( false :: OrDo( onFailure.run ) ) must_== None
+            there was one(onFailure).run()
+        }
+
+    }
+
     "An OrDo given an Option" should {
 
         "Not run the code when the Option is a 'Some'" in {

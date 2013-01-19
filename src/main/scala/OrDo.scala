@@ -18,6 +18,15 @@ object OrDo {
  */
 class OrDo ( private val onFailure: () => Unit ) {
 
+    /** Binds this behavior to a boolean value */
+    def :: [A] ( condition: Boolean ): Option[Boolean] = condition match {
+        case true => Some(true)
+        case false => {
+            onFailure()
+            None
+        }
+    }
+
     /** Binds this behavior to an option */
     def :: [A] ( condition: Option[A] ): Option[A] = condition match {
         case Some(_) => condition
