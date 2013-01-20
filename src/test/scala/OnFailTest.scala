@@ -90,7 +90,7 @@ object OnFailTest extends Specification with Mockito {
         "Not run the code when the Either is a 'Right'" in {
             val onFailure = mock[Runnable]
 
-            val result = Right("Value") :: OnFail(
+            val result = Right("Value") :: OnFail.call(
                 (value: String) => onFailure.run
             )
 
@@ -101,7 +101,7 @@ object OnFailTest extends Specification with Mockito {
         "Run the code when the Either is a 'Left'" in {
             val onFailure = mock[Runnable]
 
-            val result = Left("Value") :: OnFail( (value: String) => {
+            val result = Left("Value") :: OnFail.call( (value: String) => {
                 value must_== "Value"
                 onFailure.run
             } )
@@ -118,7 +118,9 @@ object OnFailTest extends Specification with Mockito {
             val onFailure = mock[Runnable]
             val future = Future.successful("Value")
 
-            val result = future :: OnFail( (err: Throwable) => onFailure.run )
+            val result = future :: OnFail.call {
+                (err: Throwable) => onFailure.run
+            }
 
             result must_== future
 
@@ -131,7 +133,7 @@ object OnFailTest extends Specification with Mockito {
             val error = new Exception("Failed Future")
             val future = Future.failed( error )
 
-            val result = future :: OnFail( (err: Throwable) => {
+            val result = future :: OnFail.call( (err: Throwable) => {
                 err must_== error
                 onFailure.run
             } )

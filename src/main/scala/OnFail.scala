@@ -12,12 +12,12 @@ object OnFail {
         = new OnFail( () => onFailure )
 
     /** Creates a new OnFail that receives a failed value */
-    def apply[F: Manifest] ( onFailure: (F) => Unit )
-        = new OnFailWith( onFailure )
+    def call[F: Manifest] ( onFailure: () => Unit )
+        = new OnFail( onFailure )
 
     /** Creates a new OnFail that receives a failed value */
-    def apply[F: Manifest] ( onFailure: PartialFunction[F,Unit] )
-        = new OnFailWith( onFailure.apply )
+    def call[F: Manifest] ( onFailure: (F) => Unit )
+        = new OnFailWith( onFailure )
 
 }
 
