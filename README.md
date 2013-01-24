@@ -13,55 +13,53 @@ It's easier to see an example:
 
 ```scala
 
-    def process ( data: Map[String, String] ): Either[String, Product] = {
+import com.roundeights.attempt.Attempt
 
-        import com.roundeights.attempt.Attempt
+class Process ( data: Map[String, String] ) = {
 
-        val response = for {
+    val result: Either[String, Product]  = for {
 
-            userIdString <- Attempt(
-                // Calling 'get' on a map returns an Option
-                data.get("userId"),
-                "Data is missing the 'userId' key"
-            )
+        // Giving an Option to Attempt will call the error if it is None
+        userIdString <- Attempt( data.get("userId") ).onFail {
+            "Data is missing the 'userId' key"
+        }
 
-            // Attempt.except will absorb exceptions and treat them as failures
-            userId <- Attempt.except( userIdString.toInt, "Invalid userId" )
+        // Attempt.except will absorb exceptions and treat them as failures
+        userId <- Attempt.except( userIdString.toInt ).onFail {
+            "Invalid userId"
+        }
 
-            // Guards are supported. They will use the error message
-            // of the Attempt that immediately precedes them.
-            if ( userId > 0 )
+        // Guards are supported. They will use the error message
+        // of the Attempt that immediately precedes them.
+        if ( userId > 0 )
 
-            // findByUserId should return an Option
-            user <- Attempt( findUserByID( userId ), "User could not be found" )
+        // findByUserId should return an Option
+        user <- Attempt( findUserByID( userId ) ).onFail {
+            "User could not be found"
+        }
 
-            productIdString <- Attempt(
-                // Calling 'get' on a map returns an Option
-                data.get("productId"),
-                "Data is missing the 'productId' key"
-            )
+        productIdString <- Attempt( data.get("productId") ).onFail {
+            "Data is missing the 'productId' key"
+        }
 
-            productId <- Attempt.except(
-                productIdString.toInt,
-                "Invalid productId"
-            )
+        productId <- Attempt.except( productIdString.toInt ).onFail {
+            "Invalid productId"
+        }
 
-            // Another way to handle boolean conditions, but this time it
-            // supports custom messaging
-            _ <- Attempt(
-                productId > 0,
-                "productId must be a positive integer"
-            )
+        // Another way to handle boolean conditions, but this time it
+        // supports custom messaging
+        _ <- Attempt( productId > 0 ).onFail {
+            "productId must be a positive integer"
+        }
 
-            product <- Attempt(
-                // getPurchase should return an Option
-                user.getPurchase( productId ),
-                "User has not purchased that product"
-            )
+        // getPurchase should return an Option
+        product <- Attempt( user.getPurchase( productId ) ).onFail {
+            "User has not purchased that product"
+        }
 
-        } yield product
+    } yield product
 
-    }
+}
 
 ```
 

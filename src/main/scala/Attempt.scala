@@ -19,39 +19,53 @@ object Attempt {
     case class Unfailable() extends Exception
 
     /**
+     * A fluent interface for building an attempt
+     */
+    trait Fluent[S] {
+        /** Defines the failure side of things */
+        def onFail[F] ( onFailure: => F ): Attempt[S, F]
+    }
+
+    /**
      * Create an attempt from an Option
      */
-    def apply[S, F] ( condition: Option[S], onError: => F ): Attempt[S, F]
-        = condition match {
-            case None => Failure( onError )
-            case Some(value) => new Success(value, () => onError)
+    def apply[S] ( condition: Option[S] ): Fluent[S] = new Fluent[S] {
+
+        /** {@inheritDoc} */
+        override def onFail[F] ( onFailure: => F ): Attempt[S, F] = {
+            condition match {
+                case None => Failure( onFailure )
+                case Some(value) => new Success(value, () => onFailure)
+            }
         }
+    }
 
     /**
      * Create an attempt from a boolean expression
      */
-    def apply[F] ( condition: Boolean, onError: => F ): Attempt[Boolean, F]
-        = condition match {
-            case false  => Failure( onError )
-            case true => new Success( true, () => onError )
-        }
+    def apply ( condition: Boolean ): Fluent[Boolean] = new Fluent[Boolean] {
 
-    /**
-     * Creates an always successful attempt
-     */
-    def apply[S] ( value: S ): Attempt[S, Nothing]
-        = new Success( value, () => throw Unfailable() )
+        /** {@inheritDoc} */
+        override def onFail[F] ( onFailure: => F ): Attempt[Boolean, F] = {
+            condition match {
+                case false  => Failure( onFailure )
+                case true => new Success( true, () => onFailure )
+            }
+        }
+    }
 
     /**
      * Wraps an attempt in a try/catch
      */
-    def except[S, F] (
-        condition: => S, onError: => F
-    ): Attempt[S, F] = {
-        try {
-            new Success( condition, () => onError )
-        } catch {
-            case _: Throwable => Failure( onError )
+    def except[S] ( condition: => S ): Fluent[S] = new Fluent[S] {
+
+        /** {@inheritDoc} */
+        override def onFail[F] ( onFailure: => F ): Attempt[S, F] = {
+            try {
+                new Success( condition, () => onFailure )
+            } catch {
+                case _: Throwable => Failure( onFailure )
+            }
         }
     }
 
@@ -125,6 +139,12 @@ abstract sealed class Attempt [+S, +F] {
  * Companion for the Success object
  */
 object Success {
+
+    /**
+     * Creates an always successful attempt
+     */
+    def apply[S] ( value: S ): Attempt[S, Nothing]
+        = new Success( value, () => throw Attempt.Unfailable() )
 
     /**
      * Create a new Success object

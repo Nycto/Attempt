@@ -10,8 +10,8 @@ object AttemptTest extends Specification {
 
         "yield the final value if all the errors are successful" in {
             val result = for {
-                a <- Attempt( Some("abc"), "Error 1" )
-                b <- Attempt( Some("xyz" + a), "Error 2" )
+                a <- Attempt( Some("abc") ).onFail( "Error 1" )
+                b <- Attempt( Some("xyz" + a) ).onFail( "Error 2" )
             } yield b
 
             result must_== Success("xyzabc", "Error 1")
@@ -19,8 +19,8 @@ object AttemptTest extends Specification {
 
         "yield an intermediary error if anything is None" in {
             val result = for {
-                a <- Attempt( None, "Error 1" )
-                b <- Attempt( Some("xyz" + a), "Error 2" )
+                a <- Attempt( None ).onFail( "Error 1" )
+                b <- Attempt( Some("xyz" + a) ).onFail( "Error 2" )
             } yield b
 
             result must_== Failure("Error 1")
@@ -28,7 +28,7 @@ object AttemptTest extends Specification {
 
         "not evaluate the failure condition unless it is encountered" in {
             val result = for {
-                a <- Attempt( Some(1234), throw new RuntimeException )
+                a <- Attempt( Some(1234) ).onFail( throw new Exception )
             } yield a
 
             result must_== Success(1234, "Err")
@@ -40,9 +40,9 @@ object AttemptTest extends Specification {
 
         "continue when an if check succeeds" in {
             val result = for {
-                a <- Attempt( Some(1234), "Error 1" )
+                a <- Attempt( Some(1234) ).onFail( "Error 1" )
                 if ( a == 1234 )
-                b <- Attempt( Some(a + 6), "Error 2" )
+                b <- Attempt( Some(a + 6) ).onFail( "Error 2" )
             } yield b
 
             result must_== Success(1240, "Error 1")
@@ -50,9 +50,9 @@ object AttemptTest extends Specification {
 
         "short circuit when an if check fails" in {
             val result = for {
-                a <- Attempt( Some(1234), "Error 1" )
+                a <- Attempt( Some(1234) ).onFail( "Error 1" )
                 if ( a != 1234 )
-                b <- Attempt( Some(a + 6), "Error 2" )
+                b <- Attempt( Some(a + 6) ).onFail( "Error 2" )
             } yield b
 
             result must_== Failure("Error 1")
@@ -60,7 +60,7 @@ object AttemptTest extends Specification {
 
         "not evaluate the failure condition unless it is encountered" in {
             val result = for {
-                a <- Attempt( Some(1234), throw new RuntimeException )
+                a <- Attempt( Some(1234) ).onFail( throw new Exception )
                 if ( a == 1234 )
             } yield a
 
@@ -73,7 +73,7 @@ object AttemptTest extends Specification {
 
         "be Successful for True" in {
             val result = for {
-                a <- Attempt( true, "Err 1" )
+                a <- Attempt( true ).onFail( "Err 1" )
             } yield a
 
             result must_== Success(true, "Err")
@@ -81,8 +81,8 @@ object AttemptTest extends Specification {
 
         "fail when evaluated to false" in {
             val result = for {
-                _ <- Attempt( true, "Err 1" )
-                a <- Attempt( false, "Error 2" )
+                _ <- Attempt( true ).onFail( "Err 1" )
+                a <- Attempt( false ).onFail( "Error 2" )
             } yield a
 
             result must_== Failure("Error 2")
@@ -94,7 +94,7 @@ object AttemptTest extends Specification {
 
         "be Successful for True" in {
             val result = for {
-                a <- Attempt( "Success!" )
+                a <- Success( "Success!" )
             } yield a
 
             result must beLike {
@@ -105,7 +105,7 @@ object AttemptTest extends Specification {
         "Throw when guarded" in {
             {
                 for {
-                    a <- Attempt( "Success!" )
+                    a <- Success( "Success!" )
                     if ( false )
                 } yield a
             } must throwAn[Exception]
@@ -117,10 +117,7 @@ object AttemptTest extends Specification {
 
         "absorb exceptions" in {
             val result = for {
-                a <- Attempt.except(
-                    throw new RuntimeException,
-                    "Error"
-                )
+                a <- Attempt.except( throw new Exception ).onFail( "Error" )
             } yield a
 
             result must_== Failure("Error")
@@ -128,7 +125,7 @@ object AttemptTest extends Specification {
 
         "yield the conditional value if there is no exception" in {
             val result = for {
-                a <- Attempt.except( 123, "Error" )
+                a <- Attempt.except( 123 ).onFail( "Error" )
             } yield a
 
             result must_== Success(123, "Error")
