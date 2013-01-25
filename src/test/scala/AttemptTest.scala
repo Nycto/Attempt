@@ -1,10 +1,8 @@
-package test.roundeights.attempt
+package com.roundeights.attempt
 
 import org.specs2.mutable._
 
 object AttemptTest extends Specification {
-
-    import com.roundeights.attempt._
 
     "Attempts using an Option" should {
 

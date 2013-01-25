@@ -1,9 +1,8 @@
-package test.roundeights.attempt
+package com.roundeights.attempt
 
 import org.specs2.mutable._
 import org.specs2.mock._
 
-import com.roundeights.attempt._
 import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -12,7 +11,7 @@ object OnFailTest extends Specification with Mockito {
 
     /** Blocks while waiting for the given future */
     def await[T] ( reader: Future[T] ): Unit
-        = Await.ready( reader, Duration(5, "second") )
+        = Await.ready( reader, Duration(10, "second") )
 
 
     "An OnFail given a Boolean" should {
