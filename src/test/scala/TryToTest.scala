@@ -63,41 +63,12 @@ object TryToTest extends Specification with Mockito {
 
     }
 
-    "A TryToWith given an Either" should {
-
-        "Not run the code when the Either is a 'Right'" in {
-            val onFailure = mock[Runnable]
-
-            val result = TryTo( Right("Value") ).onFailCall(
-                (value: String) => onFailure.run
-            )
-
-            result must_== Some("Value")
-            there was no(onFailure).run()
-        }
-
-        "Run the code when the Either is a 'Left'" in {
-            val onFailure = mock[Runnable]
-
-            val result = TryTo( Left("Value") ).onFailCall((value: String) => {
-                value must_== "Value"
-                onFailure.run
-            })
-
-            result must_== None
-            there was one(onFailure).run()
-        }
-
-    }
-
     "A TryTo.except" should {
 
         "Not run the code when an exception is not thrown" in {
             val onFailure = mock[Runnable]
 
-            val result = TryTo.except( "Value" ).onFailCall {
-                (err) => onFailure.run
-            }
+            val result = TryTo.except( "Value" ).onFail { onFailure.run }
 
             result must_== Some("Value")
             there was no(onFailure).run()
@@ -107,10 +78,12 @@ object TryToTest extends Specification with Mockito {
             val onFailure = mock[Runnable]
             val except = new Exception
 
-            val result = TryTo.except( throw except ).onFailCall { (err) => {
-                err must_== except
-                onFailure.run
-            }}
+            val result = TryTo.except( throw except ).onFailMatch {
+                case err: Throwable => {
+                    err must_== except
+                    onFailure.run
+                }
+            }
 
             result must_== None
             there was one(onFailure).run()
@@ -124,8 +97,8 @@ object TryToTest extends Specification with Mockito {
             val onFailure = mock[Runnable]
             val future = Future.successful("Value")
 
-            val result = TryTo( future ).onFailCall {
-                (err: Throwable) => onFailure.run
+            val result = TryTo( future ).onFailMatch {
+                case err: Throwable => onFailure.run
             }
 
             result must_== future
@@ -139,10 +112,12 @@ object TryToTest extends Specification with Mockito {
             val error = new Exception("Failed Future")
             val future = Future.failed( error )
 
-            val result = TryTo( future ).onFailCall( (err: Throwable) => {
-                err must_== error
-                onFailure.run
-            } )
+            val result = TryTo( future ).onFailMatch {
+                case err: Throwable => {
+                    err must_== error
+                    onFailure.run
+                }
+            }
 
             result must_== future
 
