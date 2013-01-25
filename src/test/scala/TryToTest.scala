@@ -89,6 +89,19 @@ object TryToTest extends Specification with Mockito {
             there was one(onFailure).run()
         }
 
+        "Propagate the exception if the PartialFunction doesnt match it" in {
+            val onFailure = mock[Runnable]
+
+            {
+                TryTo.except( throw new Exception ).onFailMatch {
+                    case err: RuntimeException => onFailure.run
+                }
+            } must throwA[Exception]
+
+
+            there was no(onFailure).run()
+        }
+
     }
 
     "A TryToWith given a Future" should {
