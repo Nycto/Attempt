@@ -1,6 +1,6 @@
 package com.roundeights.attempt
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{Promise, Future, ExecutionContext}
 
 /**
  * An 'OnFail' is a behavior to execute if another clause fails
@@ -18,6 +18,10 @@ object OnFail {
     /** Creates a new OnFail that receives a failed value */
     def call[F: Manifest] ( onFailure: (F) => Unit )
         = new OnFailWith( onFailure )
+
+    /** Fails a promise when an action fails */
+    def alsoFail ( promise: Promise[_] )
+        = new OnFailWith[Throwable]( (err) => promise.failure( err) )
 
 }
 
