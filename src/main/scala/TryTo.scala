@@ -1,6 +1,7 @@
 package com.roundeights.attempt
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{Future, Promise, ExecutionContext}
+import scala.util.{Failure => TryFailure}
 
 /**
  * TryTo is a mechanism for executing a given behavior if a value fails
@@ -67,13 +68,22 @@ object TryTo {
         override def onFailMatch (
             failure: PartialFunction[Throwable,Unit]
         ): Future[S] = {
-            condition.onFailure {
-                case err: Throwable => {
-                    if ( failure.isDefinedAt(err) )
+            val result = Promise[S]()
+
+            condition.onComplete {
+                case TryFailure(err) if failure.isDefinedAt(err) => {
+                    try {
                         failure( err )
+                        result.completeWith( condition )
+                    }
+                    catch {
+                        case thrown: Throwable => result.failure(thrown)
+                    }
                 }
+                case _ => result.completeWith( condition )
             }
-            condition
+
+            result.future
         }
     }
 

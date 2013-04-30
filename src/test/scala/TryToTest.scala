@@ -126,6 +126,20 @@ object TryToTest extends Specification with Mockito {
             there was one(onFailure).run()
         }
 
+        "Complete with the new exception if the fail handler throws" in {
+            val error1 = new Exception("Failed Future")
+            val error2 = new Exception("Failed Callback")
+
+            val result = TryTo( Future.failed( error1 ) ).onFailMatch {
+                case err: Throwable => {
+                    err must_== error1
+                    throw error2
+                }
+            }
+
+            await( result.failed ) must_== error2
+        }
+
     }
 
 }
