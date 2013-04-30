@@ -11,8 +11,8 @@ import java.util.concurrent.Executor
 object FutureTester {
 
     /** Blocks while waiting for the given future */
-    def await[T] ( reader: Future[T] ): Unit
-        = Await.ready( reader, Duration(10, "second") )
+    def await[T] ( future: Future[T] ): T
+        = Await.result( future, Duration(10, "second") )
 
     /** An execution context that runs in the calling thread */
     implicit val context = ExecutionContext.fromExecutor(new Executor {
