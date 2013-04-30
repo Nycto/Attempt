@@ -20,7 +20,6 @@ object TryTo {
                 }
             }
         }
-
     }
 
     /** Binds a Boolean to a failure method */
@@ -36,17 +35,12 @@ object TryTo {
                 }
             }
         }
-
     }
 
     /** Binds an Either to a failure method */
     def apply[F,S] (
         condition: Either[F,S]
     ) = new TryToWith[Option[S],F] {
-
-        /** {@inheritDoc} */
-        override def onFail ( failure: => Unit ): Option[S]
-            = onFailMatch { case _ => failure }
 
         /** {@inheritDoc} */
         override def onFailMatch (
@@ -61,7 +55,6 @@ object TryTo {
                 }
             }
         }
-
     }
 
     /** Binds a Future to a failure method */
@@ -69,11 +62,6 @@ object TryTo {
         ( condition: Future[S] )
         ( implicit executor: ExecutionContext )
     = new TryToWith[Future[S],Throwable] {
-
-        /** {@inheritDoc} */
-        override def onFail ( failure: => Unit ): Future[S] = onFailMatch {
-            case _: Throwable => failure
-        }
 
         /** {@inheritDoc} */
         override def onFailMatch (
@@ -87,16 +75,10 @@ object TryTo {
             }
             condition
         }
-
     }
 
     /** Binds a value that might throw an exception to a failure method */
     def except[S] ( condition: => S ) = new TryToWith[Option[S],Throwable] {
-
-        /** {@inheritDoc} */
-        override def onFail ( failure: => Unit ): Option[S] = onFailMatch {
-            case _: Throwable => failure
-        }
 
         /** {@inheritDoc} */
         override def onFailMatch (
@@ -111,7 +93,6 @@ object TryTo {
                 }
             }
         }
-
     }
 
 }
@@ -125,6 +106,10 @@ trait TryTo[S] {
 
 /** The interface for executing a callback if a value fails */
 trait TryToWith[S,F] extends TryTo[S] {
+
+    /** {@inheritDoc} */
+    override def onFail ( failure: => Unit ): S
+        = onFailMatch { case _ => failure }
 
     /** Executes the given thunk when the TryTo fails */
     def onFailMatch ( failure: PartialFunction[F,Unit] ): S
