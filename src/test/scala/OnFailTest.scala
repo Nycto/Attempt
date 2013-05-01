@@ -62,20 +62,18 @@ object OnFailTest extends Specification with Mockito {
 
         "Not run the code when the Future is successful" in {
             val onFailure = mock[Runnable]
-            val future = Future.successful("Value")
-            ( future :: OnFail( onFailure.run ) ) must_== future
-            await( future )
+            val result = ( Future.successful("Val") :: OnFail(onFailure.run) )
+            await( result ) must_== "Val"
             there was no(onFailure).run()
         }
 
         "Run the code when the Future is failed" in {
+            val error = new Exception("Expected exception")
             val onFailure = mock[Runnable]
-            val future: Future[String] = Future.failed( new Exception )
-            ( future :: OnFail( onFailure.run ) ) must_== future
-            await( future )
+            val result = ( Future.failed(error) :: OnFail(onFailure.run) )
+            await( result.failed ) must_== error
             there was one(onFailure).run()
         }
-
     }
 
     "An OnFailWith given an Either" should {
@@ -109,33 +107,28 @@ object OnFailTest extends Specification with Mockito {
 
         "Not run the code when the Future is successful" in {
             val onFailure = mock[Runnable]
-            val future = Future.successful("Value")
 
-            val result = future :: OnFail.call {
+            val result = Future.successful("Value") :: OnFail.call {
                 (err: Throwable) => onFailure.run
             }
 
-            result must_== future
-
-            await( future )
+            await( result ) must_== "Value"
             there was no(onFailure).run()
         }
 
         "Run the code when the Future is failed" in {
             val onFailure = mock[Runnable]
             val error = new Exception("Failed Future")
-            val future = Future.failed( error )
 
-            val result = future :: OnFail.call( (err: Throwable) => {
-                err must_== error
-                onFailure.run
-            } )
+            val result = Future.failed(error) :: OnFail.call(
+                (err: Throwable) => {
+                    err must_== error
+                    onFailure.run
+                }
+            )
 
-            result must_== future
-
-            await( future )
+            await( result.failed ) must_== error
             there was one(onFailure).run()
-
         }
 
     }
