@@ -74,6 +74,13 @@ object OnFailTest extends Specification with Mockito {
             await( result.failed ) must_== error
             there was one(onFailure).run()
         }
+
+        "Return an exception thrown by the fail handler" in {
+            val error1 = new Exception("Initial Exception")
+            val error2 = new Exception("Expected exception")
+            val result = ( Future.failed(error1) :: OnFail( throw error2 ) )
+            await( result.failed ) must_== error2
+        }
     }
 
     "An OnFailWith given an Either" should {
