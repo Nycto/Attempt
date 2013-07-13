@@ -123,5 +123,9 @@ trait TryToWith[S,F] extends TryTo[S] {
 
     /** Executes the given thunk when the TryTo fails */
     def onFailMatch ( failure: PartialFunction[F,Unit] ): S
+
+    /** Fails a future when the TryTo fails */
+    def onFailAlsoFail ( future: Promise[_] ): S
+        = onFailMatch { case err: Throwable => future.failure(err) }
 }
 
