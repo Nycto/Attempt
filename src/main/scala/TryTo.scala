@@ -105,6 +105,27 @@ object TryTo {
         }
     }
 
+    /**
+     * Pulls an option out of a future, failing if it is a None. Note that
+     * this will NOT execute the failure code if the future fails.
+     */
+    def lift[S]
+        ( condition: Future[Option[S]] )
+        ( implicit executor: ExecutionContext )
+    = new TryTo[Future[S]] {
+
+        /** {@inheritDoc} */
+        def onFail ( failure: => Unit ): Future[S] = {
+            condition.map( _ match {
+                case Some(value) => value
+                case None => {
+                    failure
+                    throw new NoSuchElementException("TryTo.lift(None)")
+                }
+            })
+        }
+    }
+
 }
 
 /** The interface for a executing callback if a value fails */

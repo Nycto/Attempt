@@ -142,6 +142,40 @@ object TryToTest extends Specification with Mockito {
 
     }
 
+    "A TryTo.lift" should {
+
+        "Succeed the returned future with the unwrapped value" in {
+            val onFailure = mock[Runnable]
+
+            val result = TryTo.lift( Future.successful(Some("Test")) )
+                .onFail { onFailure.run }
+
+            await( result ) must_== "Test"
+            there was no(onFailure).run()
+        }
+
+        "Fail when the result is a None" in {
+            val onFailure = mock[Runnable]
+
+            val result = TryTo.lift( Future.successful(None) )
+                .onFail { onFailure.run }
+
+            await( result.failed )
+            there was one(onFailure).run()
+        }
+
+        "Not run the fail method when the future fails" in {
+            val onFailure = mock[Runnable]
+            val error = new Exception("Failed Future")
+
+            val result = TryTo.lift( Future.failed(error) )
+                .onFail { onFailure.run }
+
+            await( result.failed ) must_== error
+            there was no(onFailure).run()
+        }
+    }
+
 }
 
 
