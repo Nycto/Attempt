@@ -126,6 +126,23 @@ object TryTo {
         }
     }
 
+    /**
+     * Pulls an option out of an option, failing if either is None
+     */
+    def lift[S] ( condition: Option[Option[S]] ) = new TryTo[Option[S]] {
+
+        /** {@inheritDoc} */
+        def onFail ( failure: => Unit ): Option[S] = {
+            condition.flatMap( opt => opt ) match {
+                case value: Some[_] => value
+                case None => {
+                    failure
+                    None
+                }
+            }
+        }
+    }
+
 }
 
 /** The interface for a executing callback if a value fails */

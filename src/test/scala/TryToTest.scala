@@ -142,7 +142,7 @@ object TryToTest extends Specification with Mockito {
 
     }
 
-    "A TryTo.lift" should {
+    "A TryTo.lift on a Future" should {
 
         "Succeed the returned future with the unwrapped value" in {
             val onFailure = mock[Runnable]
@@ -173,6 +173,27 @@ object TryToTest extends Specification with Mockito {
 
             await( result.failed ) must_== error
             there was no(onFailure).run()
+        }
+    }
+
+    "A TryTo.lift on an Option" should {
+
+        "Succeed when both Options are Some" in {
+            TryTo.lift( Some(Some("Test")) )
+                .onFail { throw new Exception("Should not encounter") }
+                .must_==( Some("Test") )
+        }
+
+        "Fail when the outer Option is a None" in {
+            val onFailure = mock[Runnable]
+            TryTo.lift( None ).onFail { onFailure.run } must_== None
+            there was one(onFailure).run()
+        }
+
+        "Fail when the inner Option is a None" in {
+            val onFailure = mock[Runnable]
+            TryTo.lift( Some(None) ).onFail { onFailure.run } must_== None
+            there was one(onFailure).run()
         }
     }
 
