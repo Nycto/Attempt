@@ -127,6 +127,27 @@ object TryTo {
     }
 
     /**
+     * Pulls a boolean out of a future, failing if it is a false. Note that
+     * this will NOT execute the failure code if the future fails.
+     */
+    def liftBool
+        ( condition: Future[Boolean] )
+        ( implicit executor: ExecutionContext )
+    = new TryTo[Future[Boolean]] {
+
+        /** {@inheritDoc} */
+        def onFail ( failure: => Unit ): Future[Boolean] = {
+            condition.map( _ match {
+                case true => true
+                case false => {
+                    failure
+                    throw new NoSuchElementException("TryTo.lift(false)")
+                }
+            })
+        }
+    }
+
+    /**
      * Pulls an option out of an option, failing if either is None
      */
     def lift[S] ( condition: Option[Option[S]] ) = new TryTo[Option[S]] {

@@ -197,6 +197,40 @@ object TryToTest extends Specification with Mockito {
         }
     }
 
+    "A TryTo.liftBool" should {
+
+        "Succeed when the result is true" in {
+            val onFailure = mock[Runnable]
+
+            val result = TryTo.liftBool( Future.successful(true) )
+                .onFail { onFailure.run }
+
+            await( result ) must_== true
+            there was no(onFailure).run()
+        }
+
+        "Fail when the result is a false" in {
+            val onFailure = mock[Runnable]
+
+            val result = TryTo.liftBool( Future.successful(false) )
+                .onFail { onFailure.run }
+
+            await( result.failed )
+            there was one(onFailure).run()
+        }
+
+        "Not run the fail method when the future fails" in {
+            val onFailure = mock[Runnable]
+            val error = new Exception("Failed Future")
+
+            val result = TryTo.liftBool( Future.failed(error) )
+                .onFail { onFailure.run }
+
+            await( result.failed ) must_== error
+            there was no(onFailure).run()
+        }
+    }
+
 }
 
 
