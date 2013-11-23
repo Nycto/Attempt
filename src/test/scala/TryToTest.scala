@@ -4,7 +4,7 @@ import org.specs2.mutable._
 import org.specs2.mock._
 
 import scala.concurrent._
-import com.roundeights.attempt.FutureTester._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object TryToTest extends Specification with Mockito {
 
@@ -107,13 +107,13 @@ object TryToTest extends Specification with Mockito {
                 case err: Throwable => onFailure.run
             }
 
-            await( result ) must_== "Value"
+            result must ===("Value").await
             there was no(onFailure).run()
         }
 
         "Run the code when the Future is failed" in {
             val onFailure = mock[Runnable]
-            val error = new Exception("Failed Future")
+            val error: Throwable = new Exception("Failed Future")
 
             val result = TryTo( Future.failed( error ) ).onFailMatch {
                 case err: Throwable => {
@@ -122,13 +122,13 @@ object TryToTest extends Specification with Mockito {
                 }
             }
 
-            await( result.failed ) must_== error
+            result.failed must ===(error).await
             there was one(onFailure).run()
         }
 
         "Complete with the new exception if the fail handler throws" in {
-            val error1 = new Exception("Failed Future")
-            val error2 = new Exception("Failed Callback")
+            val error1: Throwable = new Exception("Failed Future")
+            val error2: Throwable = new Exception("Failed Callback")
 
             val result = TryTo( Future.failed( error1 ) ).onFailMatch {
                 case err: Throwable => {
@@ -137,7 +137,7 @@ object TryToTest extends Specification with Mockito {
                 }
             }
 
-            await( result.failed ) must_== error2
+            result.failed must ===(error2).await
         }
 
     }
@@ -150,7 +150,7 @@ object TryToTest extends Specification with Mockito {
             val result = TryTo.lift( Future.successful(Some("Test")) )
                 .onFail { onFailure.run }
 
-            await( result ) must_== "Test"
+            result must ===("Test").await
             there was no(onFailure).run()
         }
 
@@ -160,18 +160,18 @@ object TryToTest extends Specification with Mockito {
             val result = TryTo.lift( Future.successful(None) )
                 .onFail { onFailure.run }
 
-            await( result.failed )
+            result.failed must beAnInstanceOf[Exception].await
             there was one(onFailure).run()
         }
 
         "Not run the fail method when the future fails" in {
             val onFailure = mock[Runnable]
-            val error = new Exception("Failed Future")
+            val error: Throwable = new Exception("Failed Future")
 
             val result = TryTo.lift( Future.failed(error) )
                 .onFail { onFailure.run }
 
-            await( result.failed ) must_== error
+            result.failed must ===(error).await
             there was no(onFailure).run()
         }
     }
@@ -205,7 +205,7 @@ object TryToTest extends Specification with Mockito {
             val result = TryTo.liftBool( Future.successful(true) )
                 .onFail { onFailure.run }
 
-            await( result ) must_== true
+            result must ===(true).await
             there was no(onFailure).run()
         }
 
@@ -215,18 +215,18 @@ object TryToTest extends Specification with Mockito {
             val result = TryTo.liftBool( Future.successful(false) )
                 .onFail { onFailure.run }
 
-            await( result.failed )
+            result.failed must beAnInstanceOf[Throwable].await
             there was one(onFailure).run()
         }
 
         "Not run the fail method when the future fails" in {
             val onFailure = mock[Runnable]
-            val error = new Exception("Failed Future")
+            val error: Throwable = new Exception("Failed Future")
 
             val result = TryTo.liftBool( Future.failed(error) )
                 .onFail { onFailure.run }
 
-            await( result.failed ) must_== error
+            result.failed must ===(error).await
             there was no(onFailure).run()
         }
     }

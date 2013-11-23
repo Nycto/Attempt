@@ -4,9 +4,14 @@ import org.specs2.mutable._
 import org.specs2.mock._
 
 import scala.concurrent._
-import com.roundeights.attempt.FutureTester._
+import java.util.concurrent.Executor
 
 object OnFailTest extends Specification with Mockito {
+
+    /** An execution context that runs in the calling thread */
+    implicit val context = ExecutionContext.fromExecutor(new Executor {
+        override def execute( command: Runnable ): Unit = command.run
+    })
 
     "An OnFail given a Boolean" should {
 
@@ -63,23 +68,23 @@ object OnFailTest extends Specification with Mockito {
         "Not run the code when the Future is successful" in {
             val onFailure = mock[Runnable]
             val result = ( Future.successful("Val") :: OnFail(onFailure.run) )
-            await( result ) must_== "Val"
+            result must ===("Val").await
             there was no(onFailure).run()
         }
 
         "Run the code when the Future is failed" in {
-            val error = new Exception("Expected exception")
+            val error: Throwable = new Exception("Expected exception")
             val onFailure = mock[Runnable]
             val result = ( Future.failed(error) :: OnFail(onFailure.run) )
-            await( result.failed ) must_== error
+            result.failed must ===(error).await
             there was one(onFailure).run()
         }
 
         "Return an exception thrown by the fail handler" in {
-            val error1 = new Exception("Initial Exception")
-            val error2 = new Exception("Expected exception")
+            val error1: Throwable = new Exception("Initial Exception")
+            val error2: Throwable = new Exception("Expected exception")
             val result = ( Future.failed(error1) :: OnFail( throw error2 ) )
-            await( result.failed ) must_== error2
+            result.failed must ===(error2).await
         }
     }
 
@@ -119,13 +124,13 @@ object OnFailTest extends Specification with Mockito {
                 (err: Throwable) => onFailure.run
             }
 
-            await( result ) must_== "Value"
+            result must ===("Value").await
             there was no(onFailure).run()
         }
 
         "Run the code when the Future is failed" in {
             val onFailure = mock[Runnable]
-            val error = new Exception("Failed Future")
+            val error: Throwable = new Exception("Failed Future")
 
             val result = Future.failed(error) :: OnFail.call(
                 (err: Throwable) => {
@@ -134,7 +139,7 @@ object OnFailTest extends Specification with Mockito {
                 }
             )
 
-            await( result.failed ) must_== error
+            result.failed must ===(error).await
             there was one(onFailure).run()
         }
 
