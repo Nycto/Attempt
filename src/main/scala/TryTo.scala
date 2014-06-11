@@ -62,30 +62,7 @@ object TryTo {
     def apply[S]
         ( condition: Future[S] )
         ( implicit executor: ExecutionContext )
-    = new TryToWith[Future[S],Throwable] {
-
-        /** {@inheritDoc} */
-        override def onFailMatch (
-            failure: PartialFunction[Throwable,Unit]
-        ): Future[S] = {
-            val result = Promise[S]()
-
-            condition.onComplete {
-                case TryFailure(err) if failure.isDefinedAt(err) => {
-                    try {
-                        failure( err )
-                        result.completeWith( condition )
-                    }
-                    catch {
-                        case thrown: Throwable => result.failure(thrown)
-                    }
-                }
-                case _ => result.completeWith( condition )
-            }
-
-            result.future
-        }
-    }
+    = new TryToFuture[S]( condition )
 
     /** Binds a value that might throw an exception to a failure method */
     def except[S] ( condition: => S ) = new TryToWith[Option[S],Throwable] {
@@ -163,7 +140,6 @@ object TryTo {
             }
         }
     }
-
 }
 
 /** The interface for a executing callback if a value fails */
@@ -182,9 +158,39 @@ trait TryToWith[S,F] extends TryTo[S] {
 
     /** Executes the given thunk when the TryTo fails */
     def onFailMatch ( failure: PartialFunction[F,Unit] ): S
+}
+
+/** A custom interface for failing futures */
+class TryToFuture[S]
+    ( private val condition: Future[S] )
+    ( implicit executor: ExecutionContext )
+extends TryToWith[Future[S], Throwable] {
+
+    /** {@inheritDoc} */
+    override def onFailMatch (
+        failure: PartialFunction[Throwable,Unit]
+    ): Future[S] = {
+        val result = Promise[S]()
+
+        condition.onComplete {
+            case TryFailure(err) if failure.isDefinedAt(err) => {
+                try {
+                    failure( err )
+                    result.completeWith( condition )
+                }
+                catch {
+                    case thrown: Throwable => result.failure(thrown)
+                }
+            }
+            case _ => result.completeWith( condition )
+        }
+
+        result.future
+    }
 
     /** Fails a future when the TryTo fails */
-    def onFailAlsoFail ( future: Promise[_] ): S
-        = onFailMatch { case err: Throwable => future.failure(err) }
+    def onFailAlsoFail ( future: Promise[_] ): Future[S] = onFailMatch {
+        case err: Throwable => future.failure(err)
+    }
 }
 

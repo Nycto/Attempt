@@ -231,6 +231,22 @@ object TryToTest extends Specification with Mockito {
         }
     }
 
+    "A TryTo that fails a promise" should {
+
+        "Not touch that promise if there isn't a failure" in {
+            val noChange = Promise[String]
+            TryTo { Future.successful("Something") } onFailAlsoFail noChange
+            noChange.success("Result")
+            noChange.future must ===("Result").await
+        }
+
+        "Fail the promise if the future fails" in {
+            val err: Throwable = new Exception("Expected error")
+            val toFail = Promise[String]
+            TryTo { Future.failed(err) } onFailAlsoFail toFail
+            toFail.future.failed must ===(err).await
+        }
+    }
 }
 
 
