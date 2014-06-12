@@ -140,6 +140,12 @@ object TryTo {
             }
         }
     }
+
+    /** Used in TryToFuture to build a fluent interface */
+    trait ThenFail[S] {
+        /** Passes a failure along to the given promise */
+        def thenFail ( future: Promise[_] ): Future[S]
+    }
 }
 
 /** The interface for a executing callback if a value fails */
@@ -191,6 +197,20 @@ extends TryToWith[Future[S], Throwable] {
     /** Fails a future when the TryTo fails */
     def onFailAlsoFail ( future: Promise[_] ): Future[S] = onFailMatch {
         case err: Throwable => future.failure(err)
+    }
+
+    /** Fails a future when the TryTo fails */
+    def onFailMap (
+        mapper: PartialFunction[Throwable, Throwable]
+    ) = new TryTo.ThenFail[S] {
+        /** {@inheritDoc} */
+        override def thenFail ( future: Promise[_] ): Future[S] = {
+            onFailMatch {
+                case err if mapper.isDefinedAt(err)
+                    => future.failure(mapper(err))
+                case err: Throwable => future.failure(err)
+            }
+        }
     }
 }
 

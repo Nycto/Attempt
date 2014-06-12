@@ -246,6 +246,39 @@ object TryToTest extends Specification with Mockito {
             TryTo { Future.failed(err) } onFailAlsoFail toFail
             toFail.future.failed must ===(err).await
         }
+
+        "Allow the exception to be mapped over" in {
+            val first: Throwable = new Exception("Expected error 1")
+            val second: Throwable = new RuntimeException("Expected error 2")
+            val toFail = Promise[String]
+            TryTo { Future.failed(first) } onFailMap {
+                case err: Throwable if err == first => second
+            } thenFail(toFail)
+
+            toFail.future.failed must ===(second).await
+        }
+
+        "Not transform if the partial function isn't defined" in {
+            val err: Throwable = new Exception("Expected error")
+            val toFail = Promise[String]
+            TryTo { Future.failed(err) } onFailMap {
+                case err: RuntimeException
+                    => throw new Exception("Test failure")
+            } thenFail(toFail)
+
+            toFail.future.failed must ===(err).await
+        }
+
+        "Not call a map if a TryTo succeeds" in {
+            val noChange = Promise[String]
+
+            TryTo { Future.successful("Something") } onFailMap {
+                case err: Exception => throw new Exception("Test failure")
+            } thenFail(noChange)
+
+            noChange.success("Result")
+            noChange.future must ===("Result").await
+        }
     }
 }
 
