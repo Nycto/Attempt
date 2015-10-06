@@ -4,7 +4,7 @@ organization := "com.roundeights"
 
 version := "0.1"
 
-scalaVersion := "2.11.2"
+scalaVersion := "2.11.7"
 
 // append -deprecation to the options passed to the Scala compiler
 scalacOptions ++= Seq("-deprecation", "-feature")
@@ -15,6 +15,6 @@ credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 // Application dependencies
 libraryDependencies ++= Seq(
-    "org.specs2" %% "specs2" % "2.3.11" % "test"
+    "org.specs2" %% "specs2" % "2.3.+" % "test"
 )
 
